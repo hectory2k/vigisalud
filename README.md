@@ -1,4 +1,3 @@
-
 # 🏥 VigiSalud - MVP
 
 Predicción de picos de consultas ortopédicas con datos abiertos y modelos estacionales.  
@@ -32,3 +31,65 @@ Zonas: Norte, Sur, Centro
 El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospital puede reforzar la guardia traumatológica y redistribuir recursos antes del pico.
 
 ## 🔄 Arquitectura
+```mermaid
+flowchart TD
+    A[📊 Fuentes de Datos] --> B[🐍 Scripts de Ingesta]
+    B --> C[🐘 Supabase PostgreSQL]
+    C --> D[🧠 Modelo Predictivo]
+    D --> E[📈 Predicciones]
+    E --> F[📊 Dashboard]
+    
+    subgraph Fuentes
+        A1[🌐 World Bank API]
+        A2[📋 Datos Estacionales]
+    end
+    
+    subgraph Ingesta
+        B1[datos_reales.py]
+        B2[datos_extra.py]
+        B3[ingesta.py]
+    end
+    
+    subgraph Modelos
+        D1[promedio.py - numpy]
+        D2[modelo_scikit.py - Random Forest]
+        D3[GitHub Actions - 6 AM]
+    end
+    
+    subgraph Dashboard
+        F1[Supabase Charts]
+        F2[Chart.js + GitHub Pages]
+    end
+    
+    A1 --> B1
+    A2 --> B2
+    B1 --> C
+    B2 --> C
+    B3 --> C
+    C --> D1
+    C --> D2
+    D2 --> D3
+    D1 --> E
+    D2 --> E
+    E --> F1
+    E --> F2
+```
+## 🌐 Dashboard en vivo
+👉 [Ver dashboard público](https://hectory2k.github.io/Vigisalud-dashboard/)
+
+## 📸 Dashboard en acción
+![Dashboard VigiSalud](assets/dashboard.png)
+*Predicciones diarias por zona generadas automáticamente a las 6 AM.*
+
+## 🛠️ Tecnologías
+- Python 3 + numpy + scikit-learn
+- Supabase (PostgreSQL)
+- Termux (Moto G65)
+- Azure App Service
+- Chart.js + GitHub Pages
+
+## 👤 Autor
+Hector | [GitHub](https://github.com/hectory2k)
+
+## 📝 Licencia
+MIT
