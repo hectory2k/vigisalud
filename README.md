@@ -77,3 +77,6 @@ flowchart TD
 
 ## 👤 Autor
 Hector | github.com/hectory2k
+
+## 🌐 Dashboard Público
+👉 [Ver dashboard en vivo](https://hectory2k.github.io/Vigisalud-dashboard/)
