@@ -1,8 +1,11 @@
 import requests
 import numpy as np
 from datetime import datetime, timedelta
-from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
 
 url = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
 api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsYmN6Zmx5Z296ZnZ3eWlsaGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDM0NTAsImV4cCI6MjA5NDUxOTQ1MH0.EiNp2HRocIqW4yStNxBoHgDN-EfFZvPv_Uc5ETo0wYg"
@@ -28,31 +31,38 @@ fecha_min = min(fechas)
 dias = [(f - fecha_min).days for f in fechas]
 meses = [f.month for f in fechas]
 
-# 3. Entrenar por zona con RandomForest
-zonas_unicas = list(set(zonas))
-predicciones = []
+# 3. Armar matriz de features
+X = np.array([[dias[i], meses[i], zonas[i]] for i in range(len(datos))], dtype=object)
+y = np.array(consultas)
 
-for zona in zonas_unicas:
-    idx = [i for i, z in enumerate(zonas) if z == zona]
-    # Features: dia, mes
-    X = np.array([[dias[i], meses[i]] for i in idx])
-    y = np.array([consultas[i] for i in idx])
+# 4. Pipeline de preprocesamiento
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', SimpleImputer(strategy='median'), [0, 1]),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), [2])
+    ]
+)
+
+# 5. Pipeline completo
+modelo = Pipeline([
+    ('preprocessor', preprocessor),
+    ('model', RandomForestRegressor(n_estimators=10, random_state=42))
+])
+
+modelo.fit(X, y)
+print("Modelo entrenado con pipeline robusto")
+
+# 6. Predecir próximos 14 días
+predicciones = []
+ultimo_dia = max(dias)
+
+for offset in range(1, 15):
+    dia_pred = ultimo_dia + offset
+    fecha_pred = fecha_min + timedelta(days=int(dia_pred))
+    mes_pred = fecha_pred.month
     
-    if len(X) >= 3:
-        modelo = RandomForestRegressor(n_estimators=10, random_state=42)
-    else:
-        modelo = LinearRegression()
-    
-    modelo.fit(X, y)
-    
-    # Predecir proximos 14 dias
-    ultimo_dia = max(dias)
-    for offset in range(1, 15):
-        dia_pred = ultimo_dia + offset
-        fecha_pred = fecha_min + timedelta(days=int(dia_pred))
-        mes_pred = fecha_pred.month
-        
-        X_pred = np.array([[dia_pred, mes_pred]])
+    for zona in list(set(zonas)):
+        X_pred = np.array([[dia_pred, mes_pred, zona]], dtype=object)
         consultas_pred = int(modelo.predict(X_pred)[0])
         
         predicciones.append({
@@ -62,7 +72,7 @@ for zona in zonas_unicas:
         })
         print(f"Zona {zona} | {fecha_pred.strftime('%Y-%m-%d')} | {max(0, consultas_pred)} consultas")
 
-# 4. Guardar
+# 7. Guardar en Supabase
 url_pred = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/predicciones"
 headers_pred = {
     "apikey": api_key,
@@ -75,4 +85,4 @@ requests.delete(url_pred + "?id=gt.0", headers=headers_pred)
 for pred in predicciones:
     requests.post(url_pred, headers=headers_pred, json=pred)
 
-print(f"✅ {len(predicciones)} predicciones guardadas con scikit-learn")
+print(f"✅ {len(predicciones)} predicciones guardadas con pipeline robusto")
