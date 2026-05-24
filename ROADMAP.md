@@ -15,12 +15,16 @@
 - Automatización diaria con GitHub Actions (6 AM)
 - Seguridad: Row Level Security activado en Supabase
 - Asistente IA de Supabase configurado
+- Diagrama de arquitectura (Mermaid)
+- Vista SQL (`vw_promedio_consultas_predichas_por_zona_mes`)
 
 ## 🔜 Fase 3: Próximos pasos
 - Dashboard avanzado con Looker Studio
 - Rotación automática de datos viejos
 - Ingesta diaria automatizada
 - Incorporar variables externas (clima, contaminación)
+- 🆕 Gradient Boosting como alternativa a Random Forest
+- 🆕 Regresión Logística para clasificación de riesgo (alto/bajo)
 
 ## 🫀 Fase 4: VigiSalud Vascular
 - Dataset cardiovascular real (infarto/ACV)
@@ -29,3 +33,11 @@
 - Modelo de clasificación de riesgo a 48-72 horas
 - Validación médica profesional
 - Dashboard con semáforo de riesgo por zona
+
+## 🧠 Algoritmos en pipeline
+| Algoritmo | Estado | Uso |
+|-----------|--------|-----|
+| Regresión Lineal (numpy) | ✅ En producción | Baseline |
+| Random Forest (scikit-learn) | ✅ En producción | Modelo principal |
+| Gradient Boosting | 🔜 Planeado | Mejora de precisión |
+| Regresión Logística | 🔜 Planeado | Clasificación de riesgo |
