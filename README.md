@@ -117,8 +117,20 @@ graph LR
 - Azure App Service
 - Chart.js + GitHub Pages
 
+## 🧭 Filosofía del proyecto
+
+Estos principios guiaron el desarrollo de VigiSalud desde un Moto G65, sin presupuesto y con foco en impacto real:
+
+| Principio | Por qué importa |
+|-----------|-----------------|
+| 🩺 **Doble validación (médico + estudiante de ingenieria en iA)** | El pipeline responde a una necesidad clínica real y está técnicamente validado |
+| 📱 **Sin compu no es excusa** | Termux + GitHub Actions = producción. El entorno no limita, obliga a ser eficiente |
+| 💰 **Costo cero, impacto máximo** | Stack 100% gratuito: Supabase, GitHub, World Bank API |
+| 🧠 **KISS no es simplismo** | Arquitectura modular donde cambiar de algoritmo requiere una sola línea |
+
 ## 👤 Autor
 Hector | [GitHub](https://github.com/hectory2k)
+
 
 ## 📝 Licencia
 MIT
