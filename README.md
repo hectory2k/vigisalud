@@ -31,6 +31,7 @@ Zonas: Norte, Sur, Centro
 El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospital puede reforzar la guardia traumatológica y redistribuir recursos antes del pico.
 
 ## 🔄 Arquitectura
+
 ```mermaid
 flowchart TD
     A[📊 Fuentes de Datos] --> B[🐍 Scripts de Ingesta]
@@ -74,6 +75,29 @@ flowchart TD
     E --> F1
     E --> F2
 ```
+## ⏰ Orquestación Diaria (GitHub Actions)
+
+```mermaid
+graph LR
+    subgraph Orquestacion [GitHub Actions]
+        Cron[⏰ 6 AM] -->|Dispara| Runner[Runner Virtual]
+        Runner -->|Ejecuta| Script[modelo_scikit.py]
+    end
+
+    subgraph Pipeline
+        Script -->|Consulta| DB[(Supabase)]
+        Script -->|Entrena| RF[Random Forest]
+        RF -->|Calcula| Eval[MAE / RMSE]
+    end
+
+    subgraph Resultados
+        Eval -->|Guarda| Log[(logs_metricas)]
+    end
+
+    style Cron fill:#24292e,color:#fff
+    style Runner fill:#2dba4e,color:#fff
+    style Log fill:#ff4757,color:#fff
+
 ## 🌐 Dashboard en vivo
 👉 [Ver dashboard público](https://hectory2k.github.io/Vigisalud-dashboard/)
 
