@@ -68,13 +68,15 @@ flowchart TD
     B2 --> C
     B3 --> C
     C --> D1
-    C --> D2
+    C -->D2
     D2 --> D3
     D1 --> E
     D2 --> E
     E --> F1
     E --> F2
 ```
+## ⏰ Orquestación Diaria (GitHub Actions)
+
 ## ⏰ Orquestación Diaria (GitHub Actions)
 
 ```mermaid
@@ -97,8 +99,10 @@ graph LR
     style Cron fill:#24292e,color:#fff
     style Runner fill:#2dba4e,color:#fff
     style Log fill:#ff4757,color:#fff
+```
 
-`
+
+
 
 ## 🌐 Dashboard en vivo
 👉 [Ver dashboard público](https://hectory2k.github.io/Vigisalud-dashboard/)
