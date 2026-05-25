@@ -75,7 +75,6 @@ flowchart TD
     E --> F1
     E --> F2
 ```
-## ⏰ Orquestación Diaria (GitHub Actions)
 
 ## ⏰ Orquestación Diaria (GitHub Actions)
 
