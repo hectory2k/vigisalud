@@ -98,6 +98,8 @@ graph LR
     style Runner fill:#2dba4e,color:#fff
     style Log fill:#ff4757,color:#fff
 
+`
+
 ## 🌐 Dashboard en vivo
 👉 [Ver dashboard público](https://hectory2k.github.io/Vigisalud-dashboard/)
 
