@@ -14,6 +14,6 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests numpy scikit-learn pandas
-      - run: python modelo_scikit.py
+      - run: python modelo_robusto.py
         env:
           API_KEY: ${{ secrets.API_KEY }}
