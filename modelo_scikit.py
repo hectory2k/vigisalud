@@ -23,18 +23,47 @@ response = requests.get(url + "?select=*&order=fecha.asc", headers=headers)
 datos = response.json()
 print(f"Datos leidos: {len(datos)} registros")
 
-# 2. Preparar datos
+# 2. Preparar datos con pandas
+import pandas as pd
+
 fechas_str = [d["fecha"] for d in datos]
 consultas = [d["consultas"] for d in datos]
 zonas = [d["zona"] for d in datos]
 
 fechas = [datetime.strptime(f, "%Y-%m-%d") for f in fechas_str]
 fecha_min = min(fechas)
-dias = [(f - fecha_min).days for f in fechas]
-meses = [f.month for f in fechas]
 
-X = np.array([[dias[i], meses[i], zonas[i]] for i in range(len(datos))], dtype=object)
-y = np.array(consultas)
+df = pd.DataFrame({
+    'fecha': fechas,
+    'zona': zonas,
+    'consultas': consultas
+})
+
+df['dia'] = [(f - fecha_min).days for f in fechas]
+df['mes'] = [f.month for f in fechas]
+df['dia_semana'] = [f.weekday() for f in fechas]
+
+# Ordenar para lags
+df = df.sort_values(['zona', 'fecha'])
+
+# Lag features
+for lag in [1, 7, 14]:
+    df[f'consultas_lag_{lag}'] = df.groupby('zona')['consultas'].shift(lag)
+
+# Media móvil 7 días
+df['consultas_ma7'] = df.groupby('zona')['consultas'].transform(
+    lambda x: x.rolling(7, min_periods=1).mean()
+)
+
+# Rellenar NaNs
+df = df.bfill()
+
+print(f"Features creadas: dia, mes, dia_semana, lag_1, lag_7, lag_14, ma7")
+
+# Preparar X e y
+features_num = ['dia', 'mes', 'dia_semana', 'consultas_lag_1', 'consultas_lag_7', 'consultas_lag_14', 'consultas_ma7']
+X = df[features_num + ['zona']].values
+y = df['consultas'].values
 
 # 3. Validacion temporal (TimeSeriesSplit)
 if len(X) >= 10:
@@ -88,20 +117,50 @@ modelo = Pipeline([
 modelo.fit(X, y)
 print("✅ Modelo final entrenado con todos los datos")
 
+# Feature Importance
+importances = modelo.named_steps['model'].feature_importances_
+cat_features = modelo.named_steps['preprocessor'].named_transformers_['cat'].get_feature_names_out(['zona'])
+feature_names = features_num + list(cat_features)
+
+print("\n🔝 Feature Importance:")
+for name, imp in sorted(zip(feature_names, importances), key=lambda x: x[1], reverse=True):
+    print(f"  {name}: {imp:.4f}")
+
 # 5. Predecir proximos 14 dias
+
 predicciones = []
-ultimo_dia = max(dias)
-zonas_unicas = list(set(zonas))
+ultimo_dia = max(df['dia'].values)
+zonas_unicas = df['zona'].unique().tolist()
 
 for offset in range(1, 15):
     dia_pred = ultimo_dia + offset
     fecha_pred = fecha_min + timedelta(days=int(dia_pred))
     mes_pred = fecha_pred.month
+    dia_semana_pred = fecha_pred.weekday()
     
     for zona in zonas_unicas:
-        X_pred = np.array([[dia_pred, mes_pred, zona]], dtype=object)
+        # Agarrar el último valor conocido de cada lag para esta zona
+        df_zona = df[df['zona'] == zona].tail(14)
+        
+        if len(df_zona) > 0:
+            lag_1_val = df_zona['consultas'].values[-1]
+            lag_7_val = df_zona['consultas'].values[-min(7, len(df_zona))]
+            lag_14_val = df_zona['consultas'].values[-min(14, len(df_zona))]
+            ma7_val = df_zona['consultas'].values[-7:].mean() if len(df_zona) >= 7 else df_zona['consultas'].mean()
+        else:
+            lag_1_val = lag_7_val = lag_14_val = ma7_val = 100
+        
+        X_pred = np.array([[dia_pred, mes_pred, dia_semana_pred, lag_1_val, lag_7_val, lag_14_val, ma7_val, zona]], dtype=object)
         consultas_pred = int(modelo.predict(X_pred)[0])
         
+        predicciones.append({
+            "fecha": fecha_pred.strftime("%Y-%m-%d"),
+            "zona": zona,
+            "consultas_predichas": max(0, consultas_pred)
+        })
+        print(f"Zona {zona} | {fecha_pred.strftime('%Y-%m-%d')} | {max(0, consultas_pred)} consultas")
+
+
         predicciones.append({
             "fecha": fecha_pred.strftime("%Y-%m-%d"),
             "zona": zona,
