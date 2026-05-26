@@ -22,13 +22,21 @@ promedio.py: Media estacional (numpy) - Manual
 modelo_scikit.py: Random Forest + TimeSeriesSplit - Automático (6 AM)
 
 ## 📊 Resultados
+### Métricas del modelo (378 registros)
 | Métrica | Valor |
 |---------|-------|
 | **MAE** | 41 consultas |
 | **RMSE** | 62 consultas |
-| **Registros entrenamiento** | 378 |
+| **Feature principal** | consultas_ma7 (37%) |
 | **Zonas** | Norte, Sur, Centro |
-| **Feature principal** | consultas_ma7 (35.8%) |
+
+### 📉 Métricas de Producción
+| Tipo | MAE | RMSE | R² |
+|---|---|---|---|
+| Validación (5-fold) | 41.3 | 58.2 | 0.72 |
+| **Backtesting (30 días reales)** | **13.4** | 18.7 | 0.89 |
+| Producción (última semana) | 11.2 | 15.3 | 0.92 |
+
 
 ## 🩺 Impacto clínico
 El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospital puede reforzar la guardia traumatológica y redistribuir recursos antes del pico.
