@@ -22,10 +22,13 @@ promedio.py: Media estacional (numpy) - Manual
 modelo_scikit.py: Random Forest + TimeSeriesSplit - Automático (6 AM)
 
 ## 📊 Resultados
-MAE: 55 consultas
-RMSE: 73 consultas
-Registros entrenamiento: 54
-Zonas: Norte, Sur, Centro
+| Métrica | Valor |
+|---------|-------|
+| **MAE** | 41 consultas |
+| **RMSE** | 62 consultas |
+| **Registros entrenamiento** | 378 |
+| **Zonas** | Norte, Sur, Centro |
+| **Feature principal** | consultas_ma7 (35.8%) |
 
 ## 🩺 Impacto clínico
 El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospital puede reforzar la guardia traumatológica y redistribuir recursos antes del pico.
