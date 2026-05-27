@@ -1,6 +1,7 @@
 ```markdown
 # 🏥 VigiSalud v3.5
 
+![VigiSalud Logo](logo.svg)
 Predicción de picos de consultas ortopédicas con datos abiertos, lag features y modelos estacionales.  
 Desarrollado como proyecto para **Humai** desde un Moto G65 (Termux).
 
