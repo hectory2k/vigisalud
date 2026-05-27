@@ -12,17 +12,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - run: pip install requests numpy scikit-learn pandas
-      
+
+      - run: pip install requests numpy scikit-learn pandas python-dotenv
+
       - run: python modelo_v3_5.py
         env:
-          - run: python modelo_v3_5.py
-            env:
-    TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-    CHAT_ID: ${{ secrets.CHAT_ID }}
-    SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
