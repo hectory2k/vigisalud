@@ -21,4 +21,8 @@ jobs:
       
       - run: python modelo_v3_5.py
         env:
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          - run: python modelo_v3_5.py
+            env:
+    TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+    CHAT_ID: ${{ secrets.CHAT_ID }}
+    SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
