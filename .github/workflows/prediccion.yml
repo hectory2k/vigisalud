@@ -19,6 +19,6 @@ jobs:
       
       - run: pip install requests numpy scikit-learn pandas
       
-      - run: python modelo_robustoV3_5.py
+      - run: python modelo_v3_5.py
         env:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
