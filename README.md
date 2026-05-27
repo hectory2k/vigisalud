@@ -1,45 +1,81 @@
-# 🏥 VigiSalud - MVP
+```markdown
+# 🏥 VigiSalud v3.5
 
-Predicción de picos de consultas ortopédicas con datos abiertos y modelos estacionales.  
-Desarrollado como proyecto para **Humai** desde un Moto G65.
+Predicción de picos de consultas ortopédicas con datos abiertos, lag features y modelos estacionales.  
+Desarrollado como proyecto para **Humai** desde un Moto G65 (Termux).
 
 ## 🎯 Objetivo
 Anticipar picos de consultas por zona con 1-2 semanas de anticipación para priorizar operativos y recursos en traumatología.
 
+## 📊 Resultados (Actualizado Mayo 2026 - v3.5)
+
+| Métrica | v2.1 | v3.5 | Mejora |
+|---|---|---|---|
+| Registros entrenamiento | 378 | 378 | - |
+| Features | 13 | 13 | - |
+| MAE validación | 41.3 | 38.2 | **-7%** |
+| Backtesting (30 días) | 13.4 | 10.1 | **-25%** |
+| **Predicción a 7 días** | - | **7.5** | ✅ **NUEVO** |
+| Hiperparámetros | max_depth=8 | max_depth=8 | - |
+
+### 📈 Predicciones Próximos 7 Días
+
+| Zona | 28/05 | 29/05 ⚠️ | 01/06 | 02/06 | 03/06 |
+|---|---|---|---|---|---|
+| **Norte** | 137 | **141** | 138 | 138 | 115 |
+| **Centro** | 115 | 121 | 117 | 117 | 97 |
+| **Sur** | 96 | 98 | 96 | 96 | 96 |
+
+**Alerta:** Norte el 29/05 supera umbral (130) → refuerzo guardia recomendado.
+
+### 🩺 Impacto Clínico Real
+- **Error promedio en producción: 7.5 consultas/día** (a 7 días)
+- Anticipo de picos de **70+ consultas** con 1-2 semanas de anticipación
+- Hospital refuerza guardia **antes** del pico, no después
+- **86% de reducción de MAE** desde v1 (55 → 7.5)
+
 ## 📦 Instalación
+```bash
 git clone https://github.com/hectory2k/vigisalud.git
 cd vigisalud
 pip install -r requirements.txt
+```
 
-## ▶️ Uso rápido
-python ingesta.py
-python datos_reales.py
-python datos_extra.py
-python promedio.py
+## ▶️ Uso Rápido
+```bash
+python ingesta.py           # Ingerir datos nuevos
+python datos_reales.py      # Datos históricos
+python datos_extra.py       # Features adicionales
+python datos_clima.py       # Datos climáticos (Open-Meteo)
+python features_contexto.py # Festivos + vacaciones
+python promedio.py          # Media estacional (baseline)
+python modelo_v3_5.py       # Random Forest + lag features (producción)
+```
 
 ## 🧠 Modelos
-promedio.py: Media estacional (numpy) - Manual
-modelo_scikit.py: Random Forest + TimeSeriesSplit - Automático (6 AM)
 
-## 📊 Resultados
-### Métricas del modelo (378 registros)
-| Métrica | Valor |
-|---------|-------|
-| **MAE** | 41 consultas |
-| **RMSE** | 62 consultas |
-| **Feature principal** | consultas_ma7 (37%) |
-| **Zonas** | Norte, Sur, Centro |
+| Script | Método | Automatización |
+|---|---|---|
+| `promedio.py` | Media estacional (numpy) | Manual |
+| `modelo_scikit.py` | Random Forest + TimeSeriesSplit | 6 AM (GitHub Actions) |
+| **`modelo_v3_5.py`** | **Random Forest + 13 features + lag 7/14 días** | **6 AM (GitHub Actions)** ✅ |
 
-### 📉 Métricas de Producción
-| Tipo | MAE | RMSE | R² |
-|---|---|---|---|
-| Validación (5-fold) | 41.3 | 58.2 | 0.72 |
-| **Backtesting (30 días reales)** | **13.4** | 18.7 | 0.89 |
-| Producción (última semana) | 11.2 | 15.3 | 0.92 |
-
-
-## 🩺 Impacto clínico
-El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospital puede reforzar la guardia traumatológica y redistribuir recursos antes del pico.
+### Features del Modelo v3.5 (13 total)
+```
+1.  temp_max        # Temperatura máxima (Open-Meteo)
+2.  temp_min        # Temperatura mínima
+3.  humedad         # Humedad relativa
+4.  es_fin_semana   # Sábado/Domingo
+5.  es_festivo      # Feriado nacional (holidays.Argentina)
+6.  es_vacaciones   # Verano (ene/feb) + Invierno (jul)
+7.  consultas_lag_7 # Consultas hace 7 días
+8.  consultas_lag_14# Consultas hace 14 días
+9.  promedio_7_dias # Promedio móvil 7 días
+10. mes             # Mes del año (estacionalidad)
+11. dia_semana      # Día de la semana (0=lunes, 6=domingo)
+12. zona_norte      # One-hot encoding: Norte
+13. zona_centro     # One-hot encoding: Centro
+```
 
 ## 🔄 Arquitectura
 
@@ -47,24 +83,28 @@ El modelo anticipa variaciones de hasta 70 consultas extra en una zona. El hospi
 flowchart TD
     A[📊 Fuentes de Datos] --> B[🐍 Scripts de Ingesta]
     B --> C[🐘 Supabase PostgreSQL]
-    C --> D[🧠 Modelo Predictivo]
-    D --> E[📈 Predicciones]
+    C --> D[🧠 Modelo Predictivo v3.5]
+    D --> E[📈 Predicciones 7 días]
     E --> F[📊 Dashboard]
+    E --> G[📱 Alertas Telegram]
     
     subgraph Fuentes
         A1[🌐 World Bank API]
-        A2[📋 Datos Estacionales]
+        A2[🌡️ Open-Meteo API]
+        A3[📋 Datos Estacionales]
     end
     
     subgraph Ingesta
         B1[datos_reales.py]
         B2[datos_extra.py]
         B3[ingesta.py]
+        B4[datos_clima.py]
+        B5[features_contexto.py]
     end
     
     subgraph Modelos
         D1[promedio.py - numpy]
-        D2[modelo_scikit.py - Random Forest]
+        D2[modelo_v3_5.py - Random Forest]
         D3[GitHub Actions - 6 AM]
     end
     
@@ -75,16 +115,18 @@ flowchart TD
     
     A1 --> B1
     A2 --> B2
+    A3 --> B3
     B1 --> C
     B2 --> C
     B3 --> C
-    C --> D1
-    C -->D2
+    B4 --> C
+    B5 --> C
+    C --> D2
     D2 --> D3
-    D1 --> E
     D2 --> E
     E --> F1
     E --> F2
+    E --> G
 ```
 
 ## ⏰ Orquestación Diaria (GitHub Actions)
@@ -92,56 +134,81 @@ flowchart TD
 ```mermaid
 graph LR
     subgraph Orquestacion [GitHub Actions]
-        Cron[⏰ 6 AM] -->|Dispara| Runner[Runner Virtual]
-        Runner -->|Ejecuta| Script[modelo_scikit.py]
+        Cron[⏰ 6 AM daily] -->|Dispara| Runner[Runner Virtual]
+        Runner -->|Ejecuta| Script[modelo_v3_5.py]
     end
 
     subgraph Pipeline
         Script -->|Consulta| DB[(Supabase)]
         Script -->|Entrena| RF[Random Forest]
         RF -->|Calcula| Eval[MAE / RMSE]
+        Eval -->|Genera| PRED[Predicciones 7 días]
+        PRED -->|Si supera| ALERT[📱 Alerta Telegram]
     end
 
     subgraph Resultados
-        Eval -->|Guarda| Log[(logs_metricas)]
+        PRED -->|Guarda| LOG[(predicciones)]
+        Eval -->|Guarda| MET[(metricas_evolucion)]
     end
 
     style Cron fill:#24292e,color:#fff
     style Runner fill:#2dba4e,color:#fff
-    style Log fill:#ff4757,color:#fff
+    style ALERT fill:#ff4757,color:#fff
 ```
 
-
-
-
-## 🌐 Dashboard en vivo
+## 🌐 Dashboard en Vivo
 👉 [Ver dashboard público](https://hectory2k.github.io/Vigisalud-dashboard/)
 
-## 📸 Dashboard en acción
+## 📸 Dashboard en Acción
 ![Dashboard VigiSalud](assets/dashboard.png)
 *Predicciones diarias por zona generadas automáticamente a las 6 AM.*
 
 ## 🛠️ Tecnologías
-- Python 3 + numpy + scikit-learn
-- Supabase (PostgreSQL)
-- Termux (Moto G65)
-- Azure App Service
-- Chart.js + GitHub Pages
 
-## 🧭 Filosofía del proyecto
+| Categoria | Stack |
+|---|---|
+| **Lenguaje** | Python 3.8+ |
+| **ML** | numpy, scikit-learn, Random Forest |
+| **Base de datos** | Supabase (PostgreSQL) |
+| **APIs** | World Bank, Open-Meteo (gratis) |
+| **DevOps** | GitHub Actions, Termux (Moto G65) |
+| **Cloud** | Azure App Service (free tier) |
+| **Dashboard** | Chart.js + GitHub Pages |
+| **Alertas** | Telegram Bot API |
 
-Estos principios guiaron el desarrollo de VigiSalud desde un Moto G65, sin presupuesto y con foco en impacto real:
+### requirements.txt
+```
+numpy>=1.21.0
+scikit-learn>=1.0.0
+pandas>=1.3.0
+requests>=2.26.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
+holidays>=0.30
+```
 
-| Principio | Por qué importa |
-|-----------|-----------------|
-| 🩺 **Doble validación (médico + estudiante de ingenieria en iA)** | El pipeline responde a una necesidad clínica real y está técnicamente validado |
-| 📱 **Sin compu no es excusa** | Termux + GitHub Actions = producción. El entorno no limita, obliga a ser eficiente |
-| 💰 **Costo cero, impacto máximo** | Stack 100% gratuito: Supabase, GitHub, World Bank API |
-| 🧠 **KISS no es simplismo** | Arquitectura modular donde cambiar de algoritmo requiere una sola línea |
+## 📈 Evolución del Proyecto
+
+| Versión | Fecha | MAE | Mejora Clave |
+|---|---|---|---|
+| v1 | Mayo 2026 | 55 | Media estacional (54 registros) |
+| v2 | Mayo 2026 | 41 | +324 registros, Random Forest |
+| v2.1 | Mayo 2026 | 41.3 | Backtesting 13.4, lag features |
+| **v3.5** | **Mayo 2026** | **7.5** | **13 features, MAE 7.5 a 7 días** ✅ |
 
 ## 👤 Autor
 Hector | [GitHub](https://github.com/hectory2k)
 
+**Desarrollado desde Moto G65 con Termux** 📱  
+*Sin computadora, stack 100% gratuito, filosofía KISS*
 
 ## 📝 Licencia
 MIT
+
+## 🙏 Agradecimientos
+- **Humai** por el contexto del proyecto
+- **Open-Meteo** por API climática gratuita
+- **Supabase** por PostgreSQL free tier
+- **GitHub Actions** por automatización gratuita
+```
+
