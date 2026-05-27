@@ -180,4 +180,16 @@ log_data = {
 requests.post("https://qlbczflygozfvwyilhes.supabase.co/rest/v1/logs_metricas", headers=headers, json=log_data)
 print(f"📈 MAE del día guardado: {mae_bt:.1f}")
 
+# ==================== ALERTAS TELEGRAM ====================
+print("\n📱 Enviando alertas...")
+from alertas_telegram import enviar_alerta
+
+alertas_enviadas = 0
+for _, row in df_pred.iterrows():
+    enviar_alerta(row['zona'], row['consultas_predichas'], dia=row['fecha'])
+    alertas_enviadas += 1
+
+print(f"✅ {alertas_enviadas} alertas procesadas")
+
+
 print("\n🎉 ¡Proceso completado correctamente!")
