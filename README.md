@@ -1,7 +1,11 @@
+
+![Python](https://img.shields.io/badge/Python-3.11-blue) ![MAE](https://img.shields.io/badge/MAE-7.5-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Built](https://img.shields.io/badge/Built-Moto_G65-orange) ![Status](https://img.shields.io/badge/Status-Production-success)
+
+# 🏥 VigiSalud v3.5
+
 ```markdown
 # 🏥 VigiSalud v3.5
 
-![Python](https://img.shields.io/badge/Python-3.11-blue) ![MAE](https://img.shields.io/badge/MAE-7.5-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Built](https://img.shields.io/badge/Built-Moto_G65-orange) ![Status](https://img.shields.io/badge/Status-Production-success)
 
 Predicción de picos de consultas ortopédicas con datos abiertos, lag features y modelos estacionales.  
 Desarrollado como proyecto para **Humai** desde un Moto G65 (Termux).
