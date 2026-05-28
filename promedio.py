@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 url = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
-api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsYmN6Zmx5Z296ZnZ3eWlsaGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDM0NTAsImV4cCI6MjA5NDUxOTQ1MH0.EiNp2HRocIqW4yStNxBoHgDN-EfFZvPv_Uc5ETo0wYg"
+api_key = "TU_API_KEY"
 
 headers = {
     "apikey": api_key,

@@ -1,3 +1,4 @@
+# coding: utf-8
 import requests
 import pandas as pd
 import numpy as np
@@ -10,21 +11,17 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
 
-print("🚀 VigiSalud - Modelo Robusto con Forecast Real de Temperatura")
+print("🚀 VigiSalud - Modelo Robusto v2.1")
 
 # ==================== CONFIG ====================
 SUPABASE_URL = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
 API_KEY = "TU_API_KEY"
 
-headers = {
-    "apikey": API_KEY,
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+headers = {"apikey": API_KEY, "Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 COORDENADAS = {"Norte": (-38.95, -68.06), "Centro": (-38.95, -68.06), "Sur": (-39.10, -67.80)}
 
-# ==================== FUNCIONES CLIMA ====================
+# ==================== FUNCIONES CLIMA (mismo que antes) ====================
 def get_historical_weather(lat, lon, start_date, end_date):
     url = "https://archive-api.open-meteo.com/v1/archive"
     params = {"latitude": lat, "longitude": lon, "start_date": start_date, "end_date": end_date,
@@ -78,8 +75,8 @@ for mes, dias in feriados_2026.items():
         mask = (df['fecha'].dt.month == mes) & (df['fecha'].dt.day == dia)
         df.loc[mask, 'es_feriado'] = 1
 
-# Temperatura histórica
-print("🌡️ Obteniendo temperatura histórica...")
+# Temperatura
+print("🌡️ Obteniendo temperatura...")
 for zona in df['zona'].unique():
     if zona in COORDENADAS:
         lat, lon = COORDENADAS[zona]
@@ -88,8 +85,8 @@ for zona in df['zona'].unique():
             clima['zona'] = zona
             df = df.merge(clima, on=['fecha', 'zona'], how='left')
 
+df['temperatura_media'] = df.groupby('zona')['temperatura_media'].transform(lambda x: x.fillna(x.mean()))
 df = df.bfill()
-print("✅ Features completas")
 
 # ==================== 3. MODELO ====================
 features_num = ['dia', 'mes', 'dia_semana', 'consultas_lag_1', 'consultas_lag_7',
@@ -98,19 +95,18 @@ features_num = ['dia', 'mes', 'dia_semana', 'consultas_lag_1', 'consultas_lag_7'
 X = df[features_num + ['zona']]
 y = df['consultas'].values
 
-# Validación
 tscv = TimeSeriesSplit(n_splits=4)
 maes = []
 for train_idx, val_idx in tscv.split(X):
-    preprocessor = ColumnTransformer([
-        ('num', SimpleImputer(strategy='median'), features_num),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), ['zona'])
+    pipe = Pipeline([
+        ('preprocessor', ColumnTransformer([
+            ('num', SimpleImputer(strategy='median'), features_num),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), ['zona'])
+        ])),
+        ('model', RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42))
     ])
-    pipe = Pipeline([('preprocessor', preprocessor),
-                     ('model', RandomForestRegressor(n_estimators=80, random_state=42))])
     pipe.fit(X.iloc[train_idx], y[train_idx])
-    pred = pipe.predict(X.iloc[val_idx])
-    maes.append(mean_absolute_error(y[val_idx], pred))
+    maes.append(mean_absolute_error(y[val_idx], pipe.predict(X.iloc[val_idx])))
 
 print(f"📈 MAE Validación: {np.mean(maes):.1f}")
 
@@ -120,7 +116,7 @@ modelo = Pipeline([
         ('num', SimpleImputer(strategy='median'), features_num),
         ('cat', OneHotEncoder(handle_unknown='ignore'), ['zona'])
     ])),
-    ('model', RandomForestRegressor(n_estimators=120, random_state=42))
+    ('model', RandomForestRegressor(n_estimators=120, max_depth=8, random_state=42))
 ])
 modelo.fit(X, y)
 
@@ -130,54 +126,32 @@ fi = pd.DataFrame({
     'importance': modelo.named_steps['model'].feature_importances_
 })
 print("\n🔝 Feature Importance Top 10:")
-print(fi.sort_values('importance', ascending=False).head(10))
+print(fi.sort_values('importance', ascending=False).head(12))
 
-# ==================== 4. PREDICCIONES CON FORECAST REAL ====================
-print("\n" + "="*70)
-print("📅 PREDICCIONES PRÓXIMOS 14 DÍAS (Temperatura Real de Open-Meteo)")
-print("="*70)
+# ==================== 4. PREDICCIONES ====================
+print("\n" + "="*75)
+print("📅 PREDICCIONES PRÓXIMOS 14 DÍAS")
+print("="*75)
 
 ultimo_dia = int(df['dia'].max())
 fecha_min = df['fecha'].min()
 zonas = sorted(df['zona'].unique())
 
-# Obtener forecast real para cada zona
-print("🌤️ Obteniendo forecast de 14 días...")
-forecast_clima = {}
-for zona in zonas:
-    if zona in COORDENADAS:
-        lat, lon = COORDENADAS[zona]
-        fc = get_forecast_weather(lat, lon, days=14)
-        if fc.empty:
-            print(f"⚠️ No se pudo obtener forecast para {zona}, usando promedio histórico")
-            # Fallback: promedio de temperatura del último mes
-            temp_fallback = df[df['zona'] == zona]['temperatura_media'].tail(30).mean()
-            if pd.isna(temp_fallback):
-                temp_fallback = 15.0
-            fc = pd.DataFrame({
-                'fecha': [fecha_min + timedelta(days=ultimo_dia + i) for i in range(1, 15)],
-                'temperatura_media': [temp_fallback + np.random.uniform(-2, 2) for _ in range(14)]
-            })
-        forecast_clima[zona] = fc
-        print(f"✅ {zona}: {len(fc)} días de forecast")
+forecast_clima = {zona: get_forecast_weather(*COORDENADAS[zona]) for zona in zonas if zona in COORDENADAS}
 
-predicciones = []
 for offset in range(1, 15):
     fecha_pred = fecha_min + timedelta(days=ultimo_dia + offset)
     print(f"\n📍 {fecha_pred.strftime('%Y-%m-%d')} ({fecha_pred.strftime('%A')})")
-    
+
     for zona in zonas:
         df_zona = df[df['zona'] == zona].tail(20)
-        
-        # Buscar temperatura en el forecast real
         temp_pred = 15.0
         if zona in forecast_clima:
             fc = forecast_clima[zona]
-            # Buscar la fila que coincida con la fecha
             match = fc[fc['fecha'].dt.date == fecha_pred.date()]
             if not match.empty:
                 temp_pred = float(match['temperatura_media'].iloc[0])
-        
+
         X_pred = pd.DataFrame([{
             'dia': ultimo_dia + offset,
             'mes': fecha_pred.month,
@@ -190,37 +164,8 @@ for offset in range(1, 15):
             'temperatura_media': temp_pred,
             'zona': zona
         }])
-        
+
         pred = int(round(modelo.predict(X_pred)[0]))
-        predicciones.append({
-            "fecha": fecha_pred.strftime("%Y-%m-%d"),
-            "zona": zona,
-            "consultas_predichas": max(0, pred)
-        })
-        print(f"   → {zona:8} : {pred:3d} consultas  (Temp real: {temp_pred:.1f}°C)")
+        print(f"   → {zona:8} : {pred:3d} consultas   (Temp: {temp_pred:.1f}°C)")
 
-# ==================== 5. GUARDAR EN SUPABASE ====================
-url_pred = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/predicciones"
-headers_pred = {
-    "apikey": API_KEY,
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=minimal"
-}
-
-requests.delete(url_pred + "?id=gt.0", headers=headers_pred)
-for pred in predicciones:
-    requests.post(url_pred, headers=headers_pred, json=pred)
-
-print(f"\n✅ {len(predicciones)} predicciones guardadas en Supabase con temperaturas reales")
-
-# Guardar métricas
-url_logs = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/logs_metricas"
-requests.post(url_logs, headers=headers_pred, json={
-    "fecha_ejecucion": datetime.now().strftime("%Y-%m-%d"),
-    "mae": round(np.mean(maes), 2),
-    "rmse": 0,
-    "n_registros": len(df)
-})
-print(f"📊 Métricas guardadas en logs_metricas")
-print("\n🎉 ¡Modelo Robusto con forecast real completado!")
+print("\n🎉 ¡Modelo Robusto completado exitosamente!")
