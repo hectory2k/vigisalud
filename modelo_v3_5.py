@@ -15,25 +15,17 @@ from dotenv import load_dotenv
 print("🚀 VigiSalud - Modelo Final v3.5 | 7 días + Logs MAE")
 
 # ==================== CONFIG ====================
-SUPABASE_URL = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
+from config import SUPABASE_URL, SUPABASE_KEY, COORDENADAS, FERIADOS_NACIONALES, UMBRALES
+import os
+from dotenv import load_dotenv
 load_dotenv()
-API_KEY = os.getenv("SUPABASE_KEY")
 
 headers = {
-    "apikey": API_KEY,
-    "Authorization": f"Bearer {API_KEY}",
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
     "Prefer": "resolution=merge-duplicates"
 }
-
-COORDENADAS = {"Norte": (-38.95, -68.06), "Centro": (-38.95, -68.06), "Sur": (-39.10, -67.80)}
-
-# ==================== FERIADOS ====================
-feriados_nacionales = [
-    "2026-01-01","2026-02-16","2026-02-17","2026-03-23","2026-03-24","2026-04-02","2026-04-03",
-    "2026-05-01","2026-05-25","2026-06-17","2026-06-20","2026-07-09","2026-08-17","2026-10-12",
-    "2026-11-23","2026-12-08","2026-12-25"
-]
 
 def es_vacaciones(fecha):
     mes = fecha.month
@@ -48,7 +40,7 @@ def get_historical_weather(lat, lon, start_date, end_date):
         url = "https://archive-api.open-meteo.com/v1/archive"
         params = {"latitude": lat, "longitude": lon, "start_date": start_date, "end_date": end_date,
                   "daily": "temperature_2m_mean", "timezone": "America/Argentina/Buenos_Aires"}
-        r = requests.get(url, params=params, timeout=15)
+        r = requests.get(url, params=params, timeout=5)
         data = r.json()
         return pd.DataFrame({
             'fecha': pd.to_datetime(data['daily']['time']),
@@ -73,7 +65,7 @@ df['mes'] = df['fecha'].dt.month
 df['dia_semana'] = df['fecha'].dt.weekday
 df['es_fin_de_semana'] = (df['dia_semana'] >= 5).astype(int)
 
-df['es_feriado'] = df['fecha'].dt.strftime('%Y-%m-%d').isin(feriados_nacionales).astype(int)
+df['es_feriado'] = df['fecha'].dt.strftime('%Y-%m-%d').isin(FERIADOS_NACIONALES).astype(int)
 df['es_vacaciones'] = df['fecha'].apply(es_vacaciones)
 df['es_no_laboral'] = (df['es_fin_de_semana'] | df['es_feriado'] | df['es_vacaciones']).astype(int)
 
@@ -85,27 +77,27 @@ for lag in [1, 7, 14]:
 
 df['consultas_ma7'] = df.groupby('zona')['consultas'].transform(lambda x: x.rolling(7, min_periods=3).mean())
 
-# Temperatura
-print("🌡️ Obteniendo temperatura...")
-clima_total = pd.DataFrame()
-for zona in df['zona'].unique():
-    if zona in COORDENADAS:
-        lat, lon = COORDENADAS[zona]
-        clima = get_historical_weather(lat, lon, df['fecha'].min().strftime("%Y-%m-%d"), df['fecha'].max().strftime("%Y-%m-%d"))
-        if not clima.empty:
-            clima['zona'] = zona
-            clima_total = pd.concat([clima_total, clima])
+## Temperatura
+#print("🌡️ Obteniendo temperatura...")
+#clima_total = pd.DataFrame()
+#for zona in df['zona'].unique():
+#    if zona in COORDENADAS:
+#        lat, lon = COORDENADAS[zona]
+#        clima = get_historical_weather(lat, lon, df['fecha'].min().strftime("%Y-%m-%d"), df['fecha'].max().strftime("%Y-%m-%d"))
+#        if not clima.empty:
+#            clima['zona'] = zona
+#            clima_total = pd.concat([clima_total, clima])
 
-if not clima_total.empty:
-    df = df.merge(clima_total, on=['fecha', 'zona'], how='left')
+#if not clima_total.empty:
+#    df = df.merge(clima_total, on=['fecha', 'zona'], how='left')
 
-df['temperatura_media'] = df.groupby('zona')['temperatura_media'].transform(lambda x: x.fillna(x.mean()))
-df = df.bfill()
+#df['temperatura_media'] = df.groupby('zona')['temperatura_media'].transform(lambda x: x.fillna(x.mean()))
+#df = df.bfill()
 
 # ==================== MODELO ====================
 features_num = ['dia_desde_inicio', 'mes', 'dia_semana', 'mes_sin', 'dia_semana_sin',
                 'consultas_lag_1', 'consultas_lag_7', 'consultas_lag_14', 'consultas_ma7',
-                'es_fin_de_semana', 'es_feriado', 'es_vacaciones', 'es_no_laboral', 'temperatura_media']
+                'es_fin_de_semana', 'es_feriado', 'es_vacaciones', 'es_no_laboral']
 
 X = df[features_num + ['zona']]
 y = df['consultas'].values
@@ -137,7 +129,7 @@ for zona in ['Norte', 'Centro', 'Sur']:
     futuro['mes'] = futuro['fecha'].dt.month
     futuro['dia_semana'] = futuro['fecha'].dt.weekday
     futuro['es_fin_de_semana'] = (futuro['dia_semana'] >= 5).astype(int)
-    futuro['es_feriado'] = futuro['fecha'].dt.strftime('%Y-%m-%d').isin(feriados_nacionales).astype(int)
+    futuro['es_feriado'] = futuro['fecha'].dt.strftime('%Y-%m-%d').isin(FERIADOS_NACIONALES).astype(int)
     futuro['es_vacaciones'] = futuro['fecha'].apply(es_vacaciones)
     futuro['es_no_laboral'] = (futuro['es_fin_de_semana'] | futuro['es_feriado'] | futuro['es_vacaciones']).astype(int)
     
