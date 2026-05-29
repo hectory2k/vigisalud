@@ -210,6 +210,20 @@ graph LR
 | **Dashboard** | Chart.js + GitHub Pages |
 | **Alertas** | Telegram Bot API |
 
+## 🔒 Seguridad y Cumplimiento
+
+- **Cifrado:** SSL/TLS en tránsito + AES-256 en reposo (Supabase)
+- **Anonimización:** Seudonimización de datos antes de APIs externas
+- **RLS:** Row Level Security activado en todas las tablas
+- **Cumplimiento:** Compatible con Ley de Protección de Datos Personales
+
+## 🔗 Interoperabilidad
+
+- **Estándar:** HL7/FHIR (próxima fase)
+- **Conexión:** API REST + CSV para ingesta inicial
+- **Compatibilidad:** Se integra con sistemas de historia clínica electrónica
+
+
 ### requirements.txt
 ```
 numpy>=1.21.0
