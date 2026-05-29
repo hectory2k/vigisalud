@@ -60,6 +60,24 @@ python modelo_v3_5.py       # Random Forest + lag features (producción)
 
 ## 🧠 Modelos
 
+## 🔬 Comparación de Modelos (Ridge vs Random Forest)
+
+| Modelo | MAE | Interpretabilidad | Velocidad | Features clave |
+|--------|-----|-------------------|-----------|----------------|
+| **Ridge (L2)** | 46.2 | ✅ Alta (coeficientes claros) | ⚡ Instantáneo | `ma7`, `lag_1`, `lag_14` |
+| **Random Forest** | 35.1 | ⚠️ Media (feature importance) | 🐢 Más lento | `ma7`, `dia`, `lag_1` |
+
+### 📉 Coeficientes Ridge (Top 5)
+| Feature | Coeficiente | Interpretación |
+|---------|-------------|----------------|
+| `ma7` | +46 | Por cada consulta extra en la media semanal, se predicen 46 más |
+| `lag_1` | -23 | El día anterior corrige la tendencia |
+| `lag_14` | -19 | Patrón quincenal significativo |
+| `dia_semana` | -13 | Disminuyen consultas los fines de semana |
+| `zona` | ~0 | Las zonas no aportan poder predictivo |
+
+> ✅ **Conclusión:** Random Forest es el modelo de producción (MAE 7.5 en v3.5). Ridge sirve como baseline interpretable y confirma que `ma7` es la feature más relevante. Las zonas geográficas pueden eliminarse sin perder precisión.
+
 | Script | Método | Automatización |
 |---|---|---|
 | `promedio.py` | Media estacional (numpy) | Manual |
