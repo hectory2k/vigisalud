@@ -1,0 +1,33 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# Supabase
+SUPABASE_URL = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# APIs externas
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
+DEEPSEEK_KEY = os.getenv("DEEPSEEK_KEY")
+
+# Telegram
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+
+# Coordenadas
+COORDENADAS = {
+    "Norte": (-38.95, -68.06),
+    "Centro": (-38.95, -68.06),
+    "Sur": (-39.10, -67.80)
+}
+
+# Feriados 2026
+FERIADOS_NACIONALES = [
+    "2026-01-01","2026-02-16","2026-02-17","2026-03-23","2026-03-24",
+    "2026-04-02","2026-04-03","2026-05-01","2026-05-25","2026-06-17",
+    "2026-06-20","2026-07-09","2026-08-17","2026-10-12","2026-11-23",
+    "2026-12-08","2026-12-25"
+]
+
+# Umbrales por zona
+UMBRALES = {"Norte": 130, "Centro": 110, "Sur": 90}
