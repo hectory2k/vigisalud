@@ -9,12 +9,15 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_absolute_error
+import os
+from dotenv import load_dotenv
 
 print("🚀 VigiSalud - Modelo Final v3.5 | 7 días + Logs MAE")
 
 # ==================== CONFIG ====================
 SUPABASE_URL = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/consultas_historicas"
-API_KEY = "TU_API_KEY"
+load_dotenv()
+API_KEY = os.getenv("SUPABASE_KEY")
 
 headers = {
     "apikey": API_KEY,
