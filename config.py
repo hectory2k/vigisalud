@@ -31,3 +31,20 @@ FERIADOS_NACIONALES = [
 
 # Umbrales por zona
 UMBRALES = {"Norte": 130, "Centro": 110, "Sur": 90}
+
+# Features del modelo
+FEATURES_NUM = [
+    'dia_desde_inicio', 'mes', 'dia_semana', 'mes_sin', 'dia_semana_sin',
+    'consultas_lag_1', 'consultas_lag_7', 'consultas_lag_14', 'consultas_ma7',
+    'es_fin_de_semana', 'es_feriado', 'es_vacaciones', 'es_no_laboral'
+]
+
+# Hiperparámetros
+HIPERPARAMETROS = {
+    'n_estimators': 100,
+    'max_depth': 8,
+    'min_samples_leaf': 2,
+    'random_state': 42,
+    'n_jobs': 1
+}
+
