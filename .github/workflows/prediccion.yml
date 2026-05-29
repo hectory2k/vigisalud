@@ -17,10 +17,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install requests numpy scikit-learn pandas python-dotenv
+      - run: pip install requests numpy scikit-learn pandas python-dotenv openai
 
       - run: python modelo_v3_5.py
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+      - run: python parte_clinico_nvidia.py
+        env:
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
