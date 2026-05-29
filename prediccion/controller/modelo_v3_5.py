@@ -15,7 +15,9 @@ from dotenv import load_dotenv
 print("🚀 VigiSalud - Modelo Final v3.5 | 7 días + Logs MAE")
 
 # ==================== CONFIG ====================
-from config import SUPABASE_URL, SUPABASE_KEY, COORDENADAS, FERIADOS_NACIONALES, UMBRALES
+import sys
+sys.path.append('../..')
+from prediccion.config import SUPABASE_URL, SUPABASE_KEY, COORDENADAS, FERIADOS_NACIONALES, UMBRALES
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -177,7 +179,9 @@ print(f"📈 MAE del día guardado: {mae_bt:.1f}")
 
 # ==================== ALERTAS TELEGRAM ====================
 print("\n📱 Enviando alertas...")
-from alertas_telegram import enviar_alerta
+import sys
+sys.path.append('../..')
+from alertas.controller.alertas_telegram import enviar_alerta
 
 alertas_enviadas = 0
 for _, row in df_pred.iterrows():
