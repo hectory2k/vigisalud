@@ -1,5 +1,5 @@
 
-![Python](https://img.shields.io/badge/Python-3.11-blue) ![MAE](https://img.shields.io/badge/MAE-7.5-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Built](https://img.shields.io/badge/Built-Moto_G65-orange) ![Status](https://img.shields.io/badge/Status-Production-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue) ![MAE](https://img.shields.io/badge/MAE-7.5-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Built](https://img.shields.io/badge/Built-Moto_G65-orange) ![Status](https://img.shields.io/badge/Status-Production-success) ![NVIDIA](https://img.shields.io/badge/NVIDIA-Llama_3.3-76B900?logo=nvidia)
 
 # 🏥 VigiSalud v3.5
 
