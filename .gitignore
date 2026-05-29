@@ -1,2 +1,4 @@
 apikey.txt
 .env
+*.ipynb
+.ipynb_checkpoints/
