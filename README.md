@@ -222,6 +222,15 @@ graph LR
 - **RLS:** Row Level Security activado en todas las tablas
 - **Cumplimiento:** Compatible con Ley de Protección de Datos Personales
 
+## 🕐 Huso Horario
+
+Todos los datos se almacenan en **UTC** para garantizar consistencia entre:
+- 🐘 Supabase (UTC por defecto)
+- 🔄 GitHub Actions (servidores en EE.UU.)
+- 🌡️ Open-Meteo (configurado con `timezone=America/Argentina/Buenos_Aires`)
+
+Las predicciones y alertas se basan en fechas (`YYYY-MM-DD`), eliminando dependencia horaria y evitando colisiones en pipelines automatizados.
+
 ## 🔗 Interoperabilidad
 
 - **Estándar:** HL7/FHIR (próxima fase)
