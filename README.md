@@ -12,6 +12,11 @@ Desarrollado como proyecto para **Humai** desde un Moto G65 (Termux).
 
 ## 🎯 Objetivo
 Anticipar picos de consultas por zona con 1-2 semanas de anticipación para priorizar operativos y recursos en traumatología.
+> *"La transición hacia una inteligencia predictiva ya no es una opción de laboratorio; es la infraestructura que los sistemas de salud necesitan con urgencia para subsistir."*  
+> — Globant, *The Next Frontier of Healthcare Transformation*, 2026
+
+VigiSalud implementa las 5 capas del ecosistema de salud inteligente descritas en el informe: **Conectividad, Inteligencia, Automatización, Experiencia y Gobernanza.**
+
 
 ## 📊 Resultados (Actualizado Mayo 2026 - v3.5)
 
