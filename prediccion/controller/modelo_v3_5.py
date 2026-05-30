@@ -12,6 +12,7 @@ from sklearn.metrics import mean_absolute_error
 import os
 from dotenv import load_dotenv
 
+
 print("🚀 VigiSalud - Modelo Final v3.5 | 7 días + Logs MAE")
 
 # ==================== CONFIG ====================
@@ -20,6 +21,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import SUPABASE_URL, SUPABASE_KEY, COORDENADAS, FERIADOS_NACIONALES, UMBRALES
 from dotenv import load_dotenv
 load_dotenv()
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from alertas.controller.alertas_telegram import enviar_alerta
 
 headers = {
     "apikey": SUPABASE_KEY,
@@ -157,6 +160,9 @@ print(f"💾 CSV guardado: {len(df_pred)} registros")
 
 # ==================== SUBIR PREDICCIONES ====================
 print("\n📤 Subiendo predicciones...")
+
+alertas_enviadas = 0
+
 for _, row in df_pred.iterrows():
     data = {
         'fecha': row['fecha'],
@@ -179,16 +185,14 @@ print(f"📈 MAE del día guardado: {mae_bt:.1f}")
 # ==================== ALERTAS TELEGRAM ====================
 print("\n📱 Enviando alertas...")
 
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from alertas.controller.alertas_telegram import enviar_alerta
+from datetime import date
+hoy = date.today()
 
-alertas_enviadas = 0
 for _, row in df_pred.iterrows():
-    enviar_alerta(row['zona'], row['consultas_predichas'], dia=row['fecha'])
-    alertas_enviadas += 1
+    if row['fecha'] >= str(hoy):
+        enviar_alerta(row['zona'], row['consultas_predichas'], dia=row['fecha'])
+        alertas_enviadas += 1
 
 print(f"✅ {alertas_enviadas} alertas procesadas")
-
 
 print("\n🎉 ¡Proceso completado correctamente!")
