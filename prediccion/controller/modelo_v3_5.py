@@ -82,6 +82,15 @@ for lag in [1, 7, 14]:
 df['consultas_ma7'] = df.groupby('zona')['consultas'].transform(lambda x: x.rolling(7, min_periods=3).mean())
 
 ## Temperatura
+
+# Cargar temperatura desde Supabase
+clima_url = "https://qlbczflygozfvwyilhes.supabase.co/rest/v1/clima?select=*"
+clima_df = pd.DataFrame(requests.get(clima_url, headers=headers).json())
+if not clima_df.empty:
+    clima_df['fecha'] = pd.to_datetime(clima_df['fecha'])
+    df = df.merge(clima_df, on=['fecha', 'zona'], how='left')
+    df['temperatura_media'] = df['temperatura_media'].fillna(df['temperatura_media'].mean())
+
 #print("🌡️ Obteniendo temperatura...")
 #clima_total = pd.DataFrame()
 #for zona in df['zona'].unique():
