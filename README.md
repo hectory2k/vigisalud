@@ -3,9 +3,6 @@
 
 # 🏥 VigiSalud v3.5
 
-```markdown
-# 🏥 VigiSalud v3.5
-
 
 Predicción de picos de consultas ortopédicas con datos abiertos, lag features y modelos estacionales.  
 Desarrollado como proyecto para **Humai** desde un Moto G65 (Termux).
@@ -272,5 +269,3 @@ MIT
 - **Open-Meteo** por API climática gratuita
 - **Supabase** por PostgreSQL free tier
 - **GitHub Actions** por automatización gratuita
-```
-
